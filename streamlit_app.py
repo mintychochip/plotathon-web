@@ -13,7 +13,12 @@ In the meantime, below is an example of what you can do with just a few lines of
 """
 
 url = 'https://raw.githubusercontent.com/Noah-Gallego/Plot-A-Thon/main/gamer_study_raw.csv'
+
 df = pd.read_csv(url)
+st.write("Before Clean")
+st.dataframe(df.head(10))
+st.dataframe(df.describe())
+st.write("After Clean")
 
 generations = {
     'Gen Z': 'Z',
@@ -46,33 +51,22 @@ lgbt_identifications = {
     'Yes': 1,
     'No': 0
 }
-df['is_player'] = df['is_player'].map(lambda x: True if x == 'TRUE' or x == 'Yes' else False)
-df = df.apply(lambda x: x.astype(int) if x.dtype == 'bool' else x)
-df = df.apply(lambda x: x.map(generations) if x.name == 'generation' else x)
-df = df.apply(lambda x: x.map(genders) if x.name == 'gender' else x)
-df = df.apply(lambda x: x.map(races) if x.name == 'race_ethnicity_primary' else x)
-df = df.apply(lambda x: x.map(lgbt_identifications) if x.name == 'lgbt_identification' else x)
-df['age'] = df['age'].map(lambda x: x if x > 0 else 0)
+mappings = {
+    'generation': generations,
+    'gender': genders,
+    'race_ethnicity_primary': races,
+    'lgbt_identfication': lgbt_identifications
+}
+df = df.assign(
+    is_player = lambda x: x['is_player'].map(lambda y: True if y == 'TRUE' or y == 'Yes' else False),
+    age = lambda x: x['age'].clip(lower=0)
+)
+for col, mapping in mappings.items():
+    if col in df.columns:
+        df[col] = df[col].map(mapping)
+df = df.astype({col: 'int' for col in df.select_dtypes('bool').columns})
+st.dataframe(df.head(10))
 st.dataframe(df.describe())
-# 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
-
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
-
+#
 # 
 # forest 
