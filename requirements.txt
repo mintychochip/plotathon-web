@@ -2,3 +2,6 @@ altair<5
 pandas
 streamlit
 scikit-learn
+matplotlib
+seaborn
+numpy
