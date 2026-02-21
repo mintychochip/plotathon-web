@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+import xgboost as xgb
+import classifier
 """
 # Welcome to Streamlit!
 
@@ -46,16 +49,10 @@ races = {
     'Native American/Alaskan': 'N'
 }
 
-lgbt_identifications = {
-    'Prefer not to say': 2,
-    'Yes': 1,
-    'No': 0
-}
 mappings = {
     'generation': generations,
     'gender': genders,
-    'race_ethnicity_primary': races,
-    'lgbt_identfication': lgbt_identifications
+    'race_ethnicity_primary': races
 }
 df = df.assign(
     is_player = lambda x: x['is_player'].map(lambda y: True if y == 'TRUE' or y == 'Yes' else False),
@@ -64,9 +61,26 @@ df = df.assign(
 for col, mapping in mappings.items():
     if col in df.columns:
         df[col] = df[col].map(mapping)
+del df['lgbt_identification']
 df = df.astype({col: 'int' for col in df.select_dtypes('bool').columns})
 st.dataframe(df.head(10))
 st.dataframe(df.describe())
-#
+X = df.drop(columns = ['children_play_games'])
+y = df['children_play_games']
+st.write("X Dataset")
+st.dataframe(X.head(10))
+st.dataframe(X.describe())
+st.write("Y Dataset")
+c1, c2 = st.columns(2)
+with c1:
+    st.subheader("Y Dataset")
+    st.dataframe(y.head(10))
+with c2:
+    st.subheader("Y Summary Statistics")
+    st.dataframe(y.describe())
+
+objs = ['generation','gender','race_ethnicity_primary']
+X = pd.get_dummies(X ,columns=objs, dummy_na=True)
+classifier.create_classifier(X, y)
 # 
 # forest 
